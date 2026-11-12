@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function ownsUser(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid}/meals/{mealId} {
+      allow read, delete: if ownsUser(uid);
+      allow create, update: if ownsUser(uid)
+        && request.resource.data.keys().hasAll(['id', 'name', 'calories', 'protein', 'carbs', 'fats', 'createdAt'])
+        && request.resource.data.keys().hasOnly([
+          'id', 'name', 'calories', 'protein', 'carbs', 'fats', 'createdAt',
+          'notes', 'advice', 'portionGrams', 'fiber', 'sugar', 'sodiumMg',
+          'saturatedFat', 'cholesterolMg', 'nutritionSource'
+        ])
+        && request.resource.data.id == mealId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.calories is number
+        && request.resource.data.calories >= 0
+        && request.resource.data.protein is number
+        && request.resource.data.protein >= 0
+        && request.resource.data.carbs is number
+        && request.resource.data.carbs >= 0
+        && request.resource.data.fats is number
+        && request.resource.data.fats >= 0
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAt.size() <= 40
+        && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 1200))
+        && (!('advice' in request.resource.data) || (request.resource.data.advice is string && request.resource.data.advice.size() <= 5000))
+        && (!('portionGrams' in request.resource.data) || (request.resource.data.portionGrams is number && request.resource.data.portionGrams > 0 && request.resource.data.portionGrams <= 10000))
+        && (!('fiber' in request.resource.data) || (request.resource.data.fiber is number && request.resource.data.fiber >= 0))
+        && (!('sugar' in request.resource.data) || (request.resource.data.sugar is number && request.resource.data.sugar >= 0))
+        && (!('sodiumMg' in request.resource.data) || (request.resource.data.sodiumMg is number && request.resource.data.sodiumMg >= 0))
+        && (!('saturatedFat' in request.resource.data) || (request.resource.data.saturatedFat is number && request.resource.data.saturatedFat >= 0))
+        && (!('cholesterolMg' in request.resource.data) || (request.resource.data.cholesterolMg is number && request.resource.data.cholesterolMg >= 0))
+        && (!('nutritionSource' in request.resource.data) || (request.resource.data.nutritionSource is string && request.resource.data.nutritionSource.size() <= 80));
+    }
+
+    // Deny all unlisted collections by default.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

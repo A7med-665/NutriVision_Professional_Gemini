@@ -1,0 +1,25 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+android/local.properties
+android/key.properties
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+# Secrets and local configuration
+.env
+.env.*.local
+!backend/.env.example
+**/service-account*.json
+**/google-services.json
+**/GoogleService-Info.plist
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
